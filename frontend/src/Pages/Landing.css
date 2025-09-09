@@ -1,0 +1,130 @@
+/* Fullscreen Landing Page */
+.landing {
+  width: 100vw;
+  min-height: 100vh;
+  background: linear-gradient(to right, #000213, rgb(5, 8, 56), rgb(34, 32, 132), rgb(60, 55, 161) ,#629ede);
+  color: white;
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Overlay for content */
+.overlay {
+  padding: 20px 50px;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.logo {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #0099f8;
+  letter-spacing: 2px;
+}
+.nav-btn {
+  margin-left: 20px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: #00f2fe;
+  color: #141e30;
+  font-weight: bold;
+  text-decoration: none;
+  transition: 0.3s;
+}
+.nav-btn:hover {
+  background: #4facfe;
+  color: white;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  margin-top: 120px;
+}
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  animation: fadeInDown 1.5s ease-in-out;
+}
+.hero-quote {
+  font-size: 1.2rem;
+  margin-bottom: 25px;
+  color: #d1d1d1;
+  animation: fadeInUp 2s ease-in-out;
+}
+.get-started {
+  padding: 12px 28px;
+  background: linear-gradient(45deg, #00f2fe, #4facfe);
+  border-radius: 30px;
+  color: #141e30;
+  font-weight: bold;
+  text-decoration: none;
+  transition: 0.3s;
+}
+.get-started:hover {
+  transform: scale(1.1);
+  background: linear-gradient(45deg, #4facfe, #00f2fe);
+}
+
+/* Features Section */
+.features {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 80px;
+  padding: 40px;
+  flex-wrap: wrap;
+}
+.feature-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  width: 280px;
+  transition: 0.3s;
+  animation: fadeIn 2s ease-in-out;
+}
+.feature-card:hover {
+  transform: translateY(-10px);
+  background: rgba(255, 255, 255, 0.2);
+}
+.feature-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  color: #00f2fe;
+}
+.feature-card h3 {
+  margin-bottom: 10px;
+  font-size: 1.4rem;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-50px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(50px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  .features {
+    flex-direction: column;
+    align-items: center;
+  }
+}

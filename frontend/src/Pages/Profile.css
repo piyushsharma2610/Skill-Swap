@@ -1,0 +1,146 @@
+.profile-layout {
+  display: flex;
+  min-height: 100vh;
+  width: calc(100vw - 265px);
+  background: var(--bg-color);
+  color: var(--text-color);
+  overflow-x: hidden;
+  margin-left: 250px;
+  
+}
+
+.sidebar {
+  width: 250px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.sidebar .logo {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar nav ul li {
+  margin: 18px 0;
+}
+
+.sidebar nav ul li a {
+  text-decoration: none;
+  color: var(--sidebar-text);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color 0.3s;
+}
+
+.sidebar nav ul li a:hover {
+  color: var(--primary);
+}
+
+
+
+.profile-main {
+  flex: 1;
+  display: flex;
+  gap: 40px;
+  padding: 40px 40px 40px 80px;
+  
+  
+}
+
+/* Left Panel */
+.profile-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-header {
+  text-align: center;
+}
+
+.profile-pic-wrapper {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--primary);
+  margin: 0 auto 12px;
+}
+
+.profile-pic {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-form {
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-form input,
+.profile-form textarea {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-color);
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+/* Right Panel */
+.profile-right {
+  flex: 1;
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--card-hover-bg);
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.stat-card h4 {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.chart-wrapper {
+  height: 250px;
+}
+
+
