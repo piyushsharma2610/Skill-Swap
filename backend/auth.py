@@ -2,11 +2,17 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import os # ✅ Import the os module
 
-# Secret key (⚠️ change this to something long and random in production!)
-SECRET_KEY = "supersecretkey123"
+# ✅ --- MODIFIED SECTION ---
+# Use the same secure method for secrets as in main.py
+# This ensures consistency across the application.
+SECRET_KEY = os.getenv("SECRET_KEY", "change_this_to_a_long_random_secret")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+# Let's increase the token lifetime to match main.py as well
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+# ✅ --- END MODIFIED SECTION ---
+
 
 # Tells FastAPI where to look for the token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -17,7 +23,7 @@ router = APIRouter()
 # ✅ Function to create token
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -56,5 +62,3 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @router.get("/me")
 def read_users_me(username: str = Depends(verify_token)):
     return {"username": username}
-
-

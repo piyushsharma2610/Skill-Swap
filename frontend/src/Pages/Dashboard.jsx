@@ -2,14 +2,16 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Dashboard.css";
 import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt } from "react-icons/fa";
-import { Sun, Moon } from "lucide-react";   // ✅ Sun & Moon toggle icons
+import { Sun, Moon } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { getSummary, getMarketSkills, addSkill, requestExchange, getSkills } from "../../services/api";
 
+// ✅ FINAL FIX: Component now correctly accepts props
+export default function Dashboard({ darkMode, setDarkMode }) {
+  
+  // The incorrect local state has been removed.
 
-export default function Dashboard() {
-  const [darkMode, setDarkMode] = useState(false);
-
+  // This useEffect now correctly uses the prop passed from App.jsx
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add("dark-mode");
@@ -78,7 +80,6 @@ export default function Dashboard() {
       await addSkill(form);
       setShowModal(false);
       setForm({ title: "", description: "", category: "", availability: "" });
-
       // Refresh marketplace + summary
       const [s, m] = await Promise.all([getSummary(), getMarketSkills()]);
       setSummary(s);
@@ -97,7 +98,7 @@ export default function Dashboard() {
     }
   }
 
-  // ✅ Skill Card Component
+  // Skill Card Component
   function SkillCard({ skill, onRequest }) {
     const [expanded, setExpanded] = useState(false);
     const maxLength = 120;
@@ -121,7 +122,6 @@ export default function Dashboard() {
           </button>
         )}
         <div className="owner">By: {skill.owner}</div>
-        {/* Hide button if it's your own skill */}
         {skill.owner !== "You" && (
           <button
             className="primary"
@@ -147,8 +147,8 @@ export default function Dashboard() {
               </Link>
             </li>
             <li>
-              <Link to="/skills">
-                <FaBook /> Skills
+              <Link to="/onboarding">
+                <FaBook /> My Interests & Skills
               </Link>
             </li>
             <li>
@@ -169,17 +169,16 @@ export default function Dashboard() {
           </ul>
         </nav>
 
-        {/* ✅ Toggle Button */}
-       <button
-  onClick={() => setDarkMode(!darkMode)}
-  className={`toggle-btn ${darkMode ? "dark" : "light"}`}
->
-  <Sun size={18} />
-  <Moon size={18} />
-  <div className="toggle-circle">
-    {darkMode ? <Moon size={16} /> : <Sun size={16} />}
-  </div>
-</button>
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className={`toggle-btn ${darkMode ? "dark" : "light"}`}
+        >
+          <Sun size={18} />
+          <Moon size={18} />
+          <div className="toggle-circle">
+            {darkMode ? <Moon size={16} /> : <Sun size={16} />}
+          </div>
+        </button>
       </aside>
 
       {/* Main Content */}

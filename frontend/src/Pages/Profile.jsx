@@ -1,31 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import {
-  FaHome,
-  FaBook,
-  FaUser,
-  FaCog,
-  FaSignOutAlt,
-} from "react-icons/fa";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaEdit, FaPlus } from "react-icons/fa";
 import { Sun, Moon } from "lucide-react";
-
 import "./Profile.css";
 
-export default function Profile() {
+const BACKEND_URL = "http://127.0.0.1:8000";
 
-  
-  const [darkMode, setDarkMode] = useState(false);
+export default function Profile({ darkMode, setDarkMode }) {
+  const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({});
   const [bio, setBio] = useState("");
   const [skills, setSkills] = useState("");
-  const [profilePic, setProfilePic] = useState("");
-  const [analytics, setAnalytics] = useState({
-    skillsCount: 0,
-    usersReached: 0,
-    progress: 0,
-  });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (darkMode) {
@@ -35,186 +24,133 @@ export default function Profile() {
     }
   }, [darkMode]);
 
-  // Load profile
   useEffect(() => {
     const token = localStorage.getItem("token");
-    axios
-      .get("http://127.0.0.1:8000/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    if (!token) return;
+    axios.get(`${BACKEND_URL}/profile`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => {
         setProfile(res.data);
         setBio(res.data.bio || "");
         setSkills(res.data.skills_offered?.join(", ") || "");
-        setProfilePic(res.data.profile_pic || "");
+        setPreviewImage(res.data.profile_pic ? `${BACKEND_URL}${res.data.profile_pic}` : "/default-profile.png");
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Profile fetch failed", err));
   }, []);
 
-  // Fake analytics data
-  useEffect(() => {
-    setAnalytics({
-      skillsCount: 12,
-      usersReached: 45,
-      progress: 68,
-    });
-  }, []);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
 
   const handleSave = async () => {
     const token = localStorage.getItem("token");
+    let uploadedPicUrl = profile.profile_pic;
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      try {
+        const res = await axios.post(`${BACKEND_URL}/profile/picture`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
+        });
+        uploadedPicUrl = res.data.profile_pic_url;
+      } catch (err) {
+        alert("Error uploading image ❌");
+        return;
+      }
+    }
+    const skillsArray = skills.split(",").map((s) => s.trim()).filter(s => s);
     try {
-      await axios.put(
-        "http://127.0.0.1:8000/profile",
-        {
-          bio,
-          skills_offered: skills.split(",").map((s) => s.trim()),
-          profile_pic: profilePic,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.put(`${BACKEND_URL}/profile`, {
+        bio,
+        skills_offered: skillsArray,
+        profile_pic: uploadedPicUrl,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setProfile(prev => ({ ...prev, bio, skills_offered: skillsArray, profile_pic: uploadedPicUrl }));
+      setIsEditing(false);
+      setSelectedFile(null);
       alert("Profile updated ✅");
     } catch (err) {
       alert("Error updating profile ❌");
     }
   };
 
-  // Chart Data
-  const chartData = [
-    { name: "Skills", value: analytics.skillsCount },
-    { name: "Users", value: analytics.usersReached },
-    { name: "Progress", value: analytics.progress },
-  ];
-
-  
- 
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.warn("⚠️ No token found. Redirect to login maybe?");
-      return;
-    }
-
-    axios
-      .get("http://127.0.0.1:8000/profile", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => setProfile(res.data))
-      .catch((err) => console.error("❌ Profile fetch failed", err));
-  }, []);
+  const handleCancel = () => {
+    setBio(profile.bio || "");
+    setSkills(profile.skills_offered?.join(", ") || "");
+    setPreviewImage(profile.profile_pic ? `${BACKEND_URL}${profile.profile_pic}` : "/default-profile.png");
+    setSelectedFile(null);
+    setIsEditing(false);
+  };
 
   return (
     <div className="profile-layout">
-      {/* Sidebar */}
       <aside className="sidebar">
         <h2 className="logo">SkillSwap 🚀</h2>
         <nav>
           <ul>
-            <li>
-              <Link to="/dashboard"><FaHome /> Home</Link>
-            </li>
-            <li>
-              <Link to="/skills"><FaBook /> Skills</Link>
-            </li>
-            <li>
-              <Link to="/profile"><FaUser /> Profile</Link>
-            </li>
-            <li>
-              <Link to="/settings"><FaCog /> Settings</Link>
-            </li>
-            <li>
-              <Link to="/login"><FaSignOutAlt /> Logout</Link>
-            </li>
+            <li><Link to="/dashboard"><FaHome /> Home</Link></li>
+            <li><Link to="/onboarding"><FaBook /> My Interests & Skills</Link></li>
+            <li><Link to="/profile"><FaUser /> Profile</Link></li>
+            <li><Link to="/settings"><FaCog /> Settings</Link></li>
+            <li><Link to="/login"><FaSignOutAlt /> Logout</Link></li>
           </ul>
         </nav>
-           <button
-         onClick={() => setDarkMode(!darkMode)}
-         className={`toggle-btn ${darkMode ? "dark" : "light"}`}
-       >
-         <Sun size={18} />
-         <Moon size={18} />
-         <div className="toggle-circle">
-           {darkMode ? <Moon size={16} /> : <Sun size={16} />}
-         </div>
-       </button>
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className={`toggle-btn ${darkMode ? "dark" : "light"}`}
+        >
+          <Sun size={18} />
+          <Moon size={18} />
+          <div className="toggle-circle">
+            {darkMode ? <Moon size={16} /> : <Sun size={16} />}
+          </div>
+        </button>
       </aside>
 
-      {/* Main Profile Area */}
-      <main className="profile-main">
-        {/* Left side - Profile Form */}
-        <div className="profile-left">
-          <div className="profile-header">
-            <div className="profile-pic-wrapper">
-              <img
-                
-                src="/default-profile.png"
-                alt="Profile"
-                className="profile-pic"
-               />
-            </div>
-            <h2>{profile.username || "Your Name"}</h2>
-            <p className="tagline">{bio || "Write something about yourself..."}</p>
+      <main className="profile-main-redesigned">
+        <div className="profile-card">
+          <div className="profile-banner"></div>
+          <div className="profile-picture-wrapper">
+            <img src={previewImage} alt="Profile" className="profile-picture" />
+            {isEditing && (
+              <button className="picture-edit-btn" onClick={() => fileInputRef.current.click()}>
+                <FaPlus />
+              </button>
+            )}
           </div>
 
-          <div className="profile-form">
-            <h3>Edit Profile</h3>
-            <label>Profile Picture URL</label>
-            <input
-              type="text"
-              value={profilePic}
-              onChange={(e) => setProfilePic(e.target.value)}
-            />
-
-            <label>Bio</label>
-            <textarea
-              rows={3}
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-            />
-
-            <label>Skills Offered</label>
-            <input
-              type="text"
-              value={skills}
-              onChange={(e) => setSkills(e.target.value)}
-            />
-
-            <button className="primary save-btn" onClick={handleSave}>
-              Save Changes
-            </button>
-          </div>
-        </div>
-
-        {/* Right side - Analytics */}
-        <div className="profile-right">
-          <h3>Your Analytics</h3>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <h4>Skills</h4>
-              <p>{analytics.skillsCount}</p>
+          {isEditing ? (
+            <div className="profile-form-redesigned">
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} accept="image/*" />
+              <input type="text" value={profile.username || ""} disabled className="username-display"/>
+              <textarea placeholder="Your bio..." rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
+              <input type="text" placeholder="Your skills (comma-separated)" value={skills} onChange={(e) => setSkills(e.target.value)} />
+              <div className="form-actions">
+                <button className="secondary-btn" onClick={handleCancel}>Cancel</button>
+                <button className="primary save-btn" onClick={handleSave}>Save</button>
+              </div>
             </div>
-            <div className="stat-card">
-              <h4>Users Reached</h4>
-              <p>{analytics.usersReached}</p>
+          ) : (
+            <div className="profile-content">
+              <div className="profile-header-redesigned">
+                <h2 className="username-display">{profile.username || "Your Name"}</h2>
+                <button className="edit-profile-btn" onClick={() => setIsEditing(true)}><FaEdit /> Edit Profile</button>
+              </div>
+              <p className="bio-display">{profile.bio || "No bio yet. Click 'Edit Profile' to add one."}</p>
+              <div className="skills-section">
+                <h3>Skills Offered</h3>
+                <div className="tag-container">
+                  {profile.skills_offered && profile.skills_offered.length > 0 ?
+                    profile.skills_offered.map((skill, i) => <span key={i} className="tag">{skill}</span>) :
+                    <p className="muted-text">No skills listed.</p>
+                  }
+                </div>
+              </div>
             </div>
-            <div className="stat-card">
-              <h4>Progress</h4>
-              <p>{analytics.progress}%</p>
-            </div>
-          </div>
-
-          <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={chartData}>
-                <XAxis dataKey="name" stroke="var(--text-color)" />
-                <YAxis stroke="var(--text-color)" />
-                <Tooltip />
-                <Bar dataKey="value" fill="var(--primary)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          )}
         </div>
       </main>
     </div>
