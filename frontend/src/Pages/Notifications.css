@@ -1,0 +1,126 @@
+.notifications-layout {
+  display: flex;
+  min-height: 100vh;
+  width: calc(100vw - 265px);
+  background: var(--bg-color);
+  color: var(--text-color);
+  margin-left: 250px;
+}
+
+.notifications-main {
+  flex: 1;
+  padding: 40px 60px;
+  width: 100%;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.notifications-header h1 {
+  font-size: 28px;
+  margin: 0;
+}
+
+.clear-btn {
+  background: transparent;
+  color: var(--muted-text);
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  color: #ef4444; /* red */
+  border-color: #ef4444;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 800px;
+}
+
+.notification-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-left: 4px solid var(--primary);
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  color: var(--primary);
+  margin-top: 3px;
+  font-size: 20px;
+}
+
+.notification-content {
+  flex-grow: 1;
+}
+
+.notification-content p {
+  margin: 0 0 12px 0;
+  line-height: 1.6;
+}
+
+.notification-message {
+  font-style: italic;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--card-hover-bg);
+  color: var(--muted-text);
+  margin-top: 8px;
+}
+
+.notification-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.no-notifications {
+  text-align: center;
+  padding: 50px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  color: var(--muted-text);
+  font-size: 18px;
+}
+
+.notification-section {
+  margin-bottom: 40px;
+}
+.notification-section h2 {
+  font-size: 22px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+.notification-card-sent {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 8px;
+}
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.status-badge.pending { background-color: #f59e0b; color: white; }
+.status-badge.accepted { background-color: #22c55e; color: white; }
+.status-badge.declined { background-color: #ef4444; color: white; }

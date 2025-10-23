@@ -1,69 +1,75 @@
-// src/services/api.js
+// The base URL of your FastAPI backend
+const API_URL = "http://127.0.0.1:8000";
 
-// Mock delay helper
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Local mock "database"
-let mockMarket = [
-  {
-    id: 1,
-    title: "Web Development",
-    category: "Programming",
-    availability: "Weekends",
-    description: "I can teach you how to build websites using HTML, CSS, and JavaScript.",
-    owner: "Alice",
-  },
-  {
-    id: 2,
-    title: "Guitar Lessons",
-    category: "Music",
-    availability: "Evenings",
-    description: "Learn to play acoustic guitar from scratch.",
-    owner: "Bob",
-  },
-];
-
-// 🟢 Get user summary
-export async function getSummary() {
-  await delay(300);
-  return {
-    username: "Piyush",
-    last_active_skill: "React Basics",
-    totals: { completed: 3, in_progress: 2 },
-    ai_suggestion: "Try learning Node.js to expand your full-stack skills!",
+// A helper function to handle API requests and errors
+async function apiRequest(endpoint, method = 'GET', body = null) {
+  const token = localStorage.getItem("token");
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
   };
-}
 
-// 🟢 Get skills marketplace
-export async function getMarketSkills() {
-  await delay(300);
-  return mockMarket;
-}
+  const config = {
+    method,
+    headers,
+  };
 
-// 🟢 Add a new skill
-export async function addSkill(skill) {
-  const newSkill = { id: Date.now(), ...skill, owner: "You" };
-  mockMarket.push(newSkill);
-  return newSkill;
-}
-
-// 🟢 Get skills (for your dashboard list)
-export async function getSkills() {
-  try {
-    const res = await fetch("http://127.0.0.1:8000/skills"); // backend call
-    if (!res.ok) throw new Error("Failed to fetch skills");
-    return await res.json();
-  } catch (err) {
-    console.warn("⚠️ Falling back to mock getSkills:", err.message);
-    return { skills: mockMarket };
+  if (body) {
+    config.body = JSON.stringify(body);
   }
+
+  const response = await fetch(`${API_URL}${endpoint}`, config);
+  
+  if (!response.ok) {
+    let errorMessage = `API Error: ${response.status} ${response.statusText}`;
+    try {
+        const errorData = await response.json();
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+            const firstError = errorData.detail[0];
+            errorMessage = `${firstError.msg} in ${firstError.loc.join(' -> ')}`;
+        } 
+        else if (errorData.detail) {
+            errorMessage = errorData.detail;
+        }
+    } catch (e) {
+        // The response was not JSON, use the default status text.
+    }
+    throw new Error(errorMessage);
+  }
+  
+  if (response.status === 204) {
+    return null;
+  }
+  
+  return response.json();
 }
 
-// 🟢 Request exchange
-export async function requestExchange(skillId, message) {
-  await delay(300);
-  console.log(`📩 Exchange request for skill ${skillId}: ${message}`);
-  return { success: true };
+// --- API Functions ---
+
+export function getSummary() {
+  return apiRequest('/dashboard/summary');
+}
+export function getMarketSkills() {
+  return apiRequest('/skills/market');
+}
+export function getMySkills() {
+    return apiRequest('/skills/mine');
+}
+export function addSkill(skillData) {
+  return apiRequest('/skills', 'POST', skillData);
+}
+export function deleteSkill(skillId) {
+    return apiRequest(`/skills/${skillId}`, 'DELETE');
+}
+export function requestExchange(skillId, message) {
+  return apiRequest('/requests', 'POST', { skill_id: skillId, message });
+}
+
+export function respondToRequest(requestId, action) {
+  return apiRequest(`/requests/${requestId}/respond`, 'PUT', { action });
+}
+
+// ✅ THIS FUNCTION WAS MISSING
+export function getSentRequests() {
+  return apiRequest('/requests/sent');
 }

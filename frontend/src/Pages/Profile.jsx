@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaEdit, FaPlus } from "react-icons/fa";
+import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaEdit, FaPlus, FaTasks, FaBell } from "react-icons/fa";
 import { Sun, Moon } from "lucide-react";
 import "./Profile.css";
 
+
 const BACKEND_URL = "http://127.0.0.1:8000";
 
-export default function Profile({ darkMode, setDarkMode }) {
+export default function Notifications({ darkMode, setDarkMode, notifications, setNotifications }) {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({});
   const [bio, setBio] = useState("");
@@ -93,6 +94,13 @@ export default function Profile({ darkMode, setDarkMode }) {
           <ul>
             <li><Link to="/dashboard"><FaHome /> Home</Link></li>
             <li><Link to="/onboarding"><FaBook /> My Interests & Skills</Link></li>
+            <li><Link to="/myskills"><FaTasks /> My Skills</Link></li>
+            <li>
+              <Link to="/notifications" className="notification-link">
+                <FaBell /> Notifications
+                {notifications.length > 0 && <span className="notification-badge">{notifications.length}</span>}
+              </Link>
+            </li>
             <li><Link to="/profile"><FaUser /> Profile</Link></li>
             <li><Link to="/settings"><FaCog /> Settings</Link></li>
             <li><Link to="/login"><FaSignOutAlt /> Logout</Link></li>
@@ -104,12 +112,9 @@ export default function Profile({ darkMode, setDarkMode }) {
         >
           <Sun size={18} />
           <Moon size={18} />
-          <div className="toggle-circle">
-            {darkMode ? <Moon size={16} /> : <Sun size={16} />}
-          </div>
+          <div className="toggle-circle">{darkMode ? <Moon size={16} /> : <Sun size={16} />}</div>
         </button>
       </aside>
-
       <main className="profile-main-redesigned">
         <div className="profile-card">
           <div className="profile-banner"></div>
@@ -121,7 +126,6 @@ export default function Profile({ darkMode, setDarkMode }) {
               </button>
             )}
           </div>
-
           {isEditing ? (
             <div className="profile-form-redesigned">
               <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} accept="image/*" />

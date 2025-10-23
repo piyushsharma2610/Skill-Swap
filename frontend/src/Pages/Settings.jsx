@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt,FaTasks, FaBell } from "react-icons/fa";
 import { Sun, Moon } from "lucide-react";
 import './Settings.css';
+
 
 // A reusable toggle switch component
 const ToggleSwitch = ({ label, checked, onChange }) => (
@@ -127,8 +128,15 @@ export default function Settings({ darkMode, setDarkMode }) {
           <ul>
             <li><Link to="/dashboard"><FaHome /> Home</Link></li>
             <li><Link to="/onboarding"><FaBook /> My Interests & Skills</Link></li>
+            <li><Link to="/myskills"><FaTasks /> My Skills</Link></li>
             <li><Link to="/profile"><FaUser /> Profile</Link></li>
             <li><Link to="/settings"><FaCog /> Settings</Link></li>
+            <li>
+              <Link to="/notifications" className="notification-link">
+                <FaBell /> Notifications
+                {notifications.length > 0 && <span className="notification-badge">{notifications.length}</span>}
+              </Link>
+            </li>
             <li><Link to="/login"><FaSignOutAlt /> Logout</Link></li>
           </ul>
         </nav>

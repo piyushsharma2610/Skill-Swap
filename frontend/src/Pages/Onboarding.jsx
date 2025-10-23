@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaEdit } from "react-icons/fa";
+import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaTasks, FaBell ,FaEdit} from "react-icons/fa";
 import { Sun, Moon } from "lucide-react";
-import './Onboarding.css'; // We'll use the same CSS file
+import './Onboarding.css';
 
-export default function Onboarding({ darkMode, setDarkMode }) {
-  // ✅ --- NEW STATE MANAGEMENT ---
-  const [isEditing, setIsEditing] = useState(false); // To toggle between display and edit views
-  const [isLoading, setIsLoading] = useState(true);   // To show a loading message
+
+export default function Notifications({ darkMode, setDarkMode, notifications, setNotifications }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     learningGoals: [],
@@ -18,7 +18,6 @@ export default function Onboarding({ darkMode, setDarkMode }) {
   const [currentInput, setCurrentInput] = useState("");
   const navigate = useNavigate();
 
-  // ✅ --- NEW: FETCH USER DATA ON LOAD ---
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("token");
@@ -32,7 +31,6 @@ export default function Onboarding({ darkMode, setDarkMode }) {
         });
         const data = await res.json();
         
-        // Check if user has already filled out their preferences
         if (data.learningGoals && data.learningGoals.length > 0) {
           setFormData({
             learningGoals: data.learningGoals || [],
@@ -40,20 +38,19 @@ export default function Onboarding({ darkMode, setDarkMode }) {
             hobbies: data.hobbies || [],
             preferredTimings: data.preferredTimings || []
           });
-          setIsEditing(false); // Show the display view
+          setIsEditing(false);
         } else {
-          setIsEditing(true); // Show the form for the first time
+          setIsEditing(true);
         }
       } catch (err) {
         console.error("Failed to fetch profile", err);
-        setIsEditing(true); // If fetch fails, show form anyway
+        setIsEditing(true);
       } finally {
         setIsLoading(false);
       }
     };
     fetchUserData();
-  }, [navigate]); // Rerun if navigate function changes
-
+  }, [navigate]);
   
   const handleInputChange = (e) => {
     setCurrentInput(e.target.value);
@@ -66,7 +63,6 @@ export default function Onboarding({ darkMode, setDarkMode }) {
     }
   };
 
-  // ✅ NEW: Function to remove an item
   const handleRemoveItem = (field, itemToRemove) => {
     setFormData(prev => ({
       ...prev,
@@ -106,8 +102,8 @@ export default function Onboarding({ darkMode, setDarkMode }) {
 
       if (res.ok) {
         alert("Your preferences have been saved!");
-        setIsEditing(false); // ✅ Switch back to display mode after saving
-        setStep(1); // Reset step for next time
+        setIsEditing(false);
+        setStep(1);
       } else {
         const data = await res.json();
         throw new Error(data.detail || "Failed to save preferences.");
@@ -118,7 +114,7 @@ export default function Onboarding({ darkMode, setDarkMode }) {
     }
   };
 
-  // ✅ --- NEW: RENDER FUNCTION FOR THE MULTI-STEP EDIT FORM ---
+   // ✅ --- NEW: RENDER FUNCTION FOR THE MULTI-STEP EDIT FORM ---
   const renderEditForm = () => {
     // Re-populate currentInput when switching steps
     const currentField = ['learningGoals', 'interests'][step - 1];
@@ -208,6 +204,7 @@ export default function Onboarding({ darkMode, setDarkMode }) {
     </div>
   );
 
+
   return (
     <div className="onboarding-layout">
       <aside className="sidebar">
@@ -216,6 +213,13 @@ export default function Onboarding({ darkMode, setDarkMode }) {
           <ul>
             <li><Link to="/dashboard"><FaHome /> Home</Link></li>
             <li><Link to="/onboarding"><FaBook /> My Interests & Skills</Link></li>
+            <li><Link to="/myskills"><FaTasks /> My Skills</Link></li>
+            <li>
+              <Link to="/notifications" className="notification-link">
+                <FaBell /> Notifications
+                {notifications.length > 0 && <span className="notification-badge">{notifications.length}</span>}
+              </Link>
+            </li>
             <li><Link to="/profile"><FaUser /> Profile</Link></li>
             <li><Link to="/settings"><FaCog /> Settings</Link></li>
             <li><Link to="/login"><FaSignOutAlt /> Logout</Link></li>
@@ -227,25 +231,19 @@ export default function Onboarding({ darkMode, setDarkMode }) {
         >
           <Sun size={18} />
           <Moon size={18} />
-          <div className="toggle-circle">
-            {darkMode ? <Moon size={16} /> : <Sun size={16} />}
-          </div>
+          <div className="toggle-circle">{darkMode ? <Moon size={16} /> : <Sun size={16} />}</div>
         </button>
       </aside>
       <main className="onboarding-main">
         <div className="onboarding-box">
-          {isLoading ? (
-            <p>Loading your preferences...</p>
-          ) : isEditing ? (
+          {isLoading ? ( <p>Loading your preferences...</p> ) : 
+           isEditing ? (
             <>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${(step / 4) * 100}%` }}></div>
-              </div>
+              <div className="progress-bar"><div className="progress-fill" style={{ width: `${(step / 4) * 100}%` }}></div></div>
               <div className="step-content">{renderEditForm()}</div>
               <div className="step-navigation">
                 {step > 1 && <button onClick={prevStep}>Back</button>}
                 {step < 4 && <button className="primary" onClick={nextStep}>Next</button>}
-                {step === 4 && <button onClick={() => setIsEditing(false)}>Cancel</button>}
               </div>
             </>
           ) : (
