@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt,FaTasks, FaBell } from "react-icons/fa";
+import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt,FaTasks, FaBell , FaCommentDots } from "react-icons/fa";
 import { Sun, Moon } from "lucide-react";
 import './Settings.css';
 
@@ -137,6 +137,7 @@ export default function Settings({ darkMode, setDarkMode }) {
                 {notifications.length > 0 && <span className="notification-badge">{notifications.length}</span>}
               </Link>
             </li>
+            <li><Link to="/chats"><FaCommentDots /> Chats</Link></li>
             <li><Link to="/login"><FaSignOutAlt /> Logout</Link></li>
           </ul>
         </nav>

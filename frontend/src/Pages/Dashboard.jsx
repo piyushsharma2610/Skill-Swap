@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from 'react-dom'; // Import ReactDOM for Portals
 import { Link } from "react-router-dom";
 import "./Dashboard.css";
-import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaTasks, FaBell } from "react-icons/fa";
+import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaTasks, FaBell,FaCommentDots } from "react-icons/fa";
 import { Sun, Moon } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { getSummary, getMarketSkills, addSkill, requestExchange } from "../../services/api";
@@ -131,6 +131,7 @@ export default function Dashboard({ darkMode, setDarkMode, notifications, latest
                 {incomingRequestCount > 0 && <span className="notification-badge">{incomingRequestCount}</span>}
               </Link>
             </li>
+            <li><Link to="/chats"><FaCommentDots /> Chats</Link></li>
             <li><Link to="/profile"><FaUser /> Profile</Link></li>
             <li><Link to="/settings"><FaCog /> Settings</Link></li>
             <li><Link to="/login"><FaSignOutAlt /> Logout</Link></li>

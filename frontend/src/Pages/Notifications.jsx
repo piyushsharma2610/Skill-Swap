@@ -89,6 +89,7 @@ export default function Notifications({ darkMode, setDarkMode, notifications, se
                 {incomingRequests && incomingRequests.length > 0 && <span className="notification-badge">{incomingRequests.length}</span>}
               </Link>
             </li>
+            <li><Link to="/chats"><FaCommentDots /> Chats</Link></li>
             <li><Link to="/profile"><FaUser /> Profile</Link></li>
             <li><Link to="/settings"><FaCog /> Settings</Link></li>
             <li><Link to="/login"><FaSignOutAlt /> Logout</Link></li>

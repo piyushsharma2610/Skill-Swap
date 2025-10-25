@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaEdit, FaPlus, FaTasks, FaBell } from "react-icons/fa";
+import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaEdit, FaPlus, FaTasks, FaBell , FaCommentDots} from "react-icons/fa";
 import { Sun, Moon } from "lucide-react";
 import "./Profile.css";
 
@@ -101,6 +101,7 @@ export default function Notifications({ darkMode, setDarkMode, notifications, se
                 {notifications.length > 0 && <span className="notification-badge">{notifications.length}</span>}
               </Link>
             </li>
+            <li><Link to="/chats"><FaCommentDots /> Chats</Link></li>
             <li><Link to="/profile"><FaUser /> Profile</Link></li>
             <li><Link to="/settings"><FaCog /> Settings</Link></li>
             <li><Link to="/login"><FaSignOutAlt /> Logout</Link></li>

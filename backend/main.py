@@ -62,6 +62,12 @@ class SkillOut(BaseModel): id: str; title: str; description: str; category: str;
 class ExchangeRequest(BaseModel): skill_id: str; message: Optional[str] = ""
 class RequestResponse(BaseModel): action: str
 class Message(BaseModel): id: str = Field(alias="_id"); request_id: str; from_user: str; to_user: str; content: str; timestamp: datetime
+# ✅ NEW: Schema for chat connection list
+class ChatConnection(BaseModel):
+    request_id: str
+    other_user: str
+    skill_title: str
+    last_message: Optional[str] = None
 
 # ---------- WebSocket Endpoint ----------
 @app.websocket("/ws/{client_id}")
@@ -204,6 +210,36 @@ async def delete_skill(skill_id: str, username: str = Depends(verify_token)):
     if skill["owner"] != username: raise HTTPException(status_code=403, detail="Not authorized.")
     await skills_collection.delete_one({"_id": object_id}); await requests_collection.delete_many({"skill_id": object_id})
     return {"message": "Skill deleted."}
+
+# ✅ NEW: Endpoint to get accepted connections for chat list
+@app.get("/chats/connections", response_model=List[ChatConnection])
+async def get_chat_connections(username: str = Depends(verify_token)):
+    connections = []
+    # Find requests where the user is involved AND status is accepted
+    query = {
+        "$and": [
+            {"status": "accepted"},
+            {"$or": [{"from_user": username}, {"to_user": username}]}
+        ]
+    }
+    cursor = requests_collection.find(query).sort("created_at", -1)
+
+    async for req in cursor:
+        other_user = req["to_user"] if req["from_user"] == username else req["from_user"]
+        skill = await skills_collection.find_one({"_id": req["skill_id"]})
+        skill_title = skill["title"] if skill else "Deleted Skill"
+
+        # Optional: Find the last message for a preview (can be added later)
+        # last_msg = await messages_collection.find_one({"request_id": req["_id"]}, sort=[("timestamp", -1)])
+        
+        connections.append(ChatConnection(
+            request_id=str(req["_id"]),
+            other_user=other_user,
+            skill_title=skill_title
+            # last_message=last_msg["content"] if last_msg else None
+        ))
+    return connections
+
 @app.get("/chat/{request_id}", response_model=List[Message])
 async def get_chat_history(request_id: str, username: str = Depends(verify_token)):
     try: req_obj_id = ObjectId(request_id)

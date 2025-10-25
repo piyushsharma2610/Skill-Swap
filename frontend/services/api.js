@@ -19,7 +19,7 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, config);
-  
+
   if (!response.ok) {
     let errorMessage = `API Error: ${response.status} ${response.statusText}`;
     try {
@@ -27,20 +27,20 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         if (errorData.detail && Array.isArray(errorData.detail)) {
             const firstError = errorData.detail[0];
             errorMessage = `${firstError.msg} in ${firstError.loc.join(' -> ')}`;
-        } 
+        }
         else if (errorData.detail) {
             errorMessage = errorData.detail;
         }
     } catch (e) {
-        // The response was not JSON, use the default status text.
+        // No JSON body
     }
     throw new Error(errorMessage);
   }
-  
+
   if (response.status === 204) {
     return null;
   }
-  
+
   return response.json();
 }
 
@@ -64,12 +64,18 @@ export function deleteSkill(skillId) {
 export function requestExchange(skillId, message) {
   return apiRequest('/requests', 'POST', { skill_id: skillId, message });
 }
-
 export function respondToRequest(requestId, action) {
   return apiRequest(`/requests/${requestId}/respond`, 'PUT', { action });
 }
-
-// ✅ THIS FUNCTION WAS MISSING
 export function getSentRequests() {
   return apiRequest('/requests/sent');
+}
+
+// ✅ THIS FUNCTION WAS MISSING
+export function getChatHistory(requestId) {
+  return apiRequest(`/chat/${requestId}`);
+}
+
+export function getChatConnections() {
+  return apiRequest('/chats/connections');
 }

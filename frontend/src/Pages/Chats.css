@@ -1,0 +1,140 @@
+.chats-layout {
+  display: flex;
+  min-height: 100vh;
+  /* Ensure the layout takes full viewport width */
+  width: 100vw;
+  background: var(--bg-color);
+  color: var(--text-color);
+  /* Remove margin-left from here */
+}
+
+/* Sidebar styles should ensure it's fixed */
+.sidebar {
+  width: 250px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000; /* Ensure sidebar is above main content */
+  /* ... other sidebar styles ... */
+  background: var(--sidebar-bg); /* Added for clarity */
+  color: var(--sidebar-text);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+}
+
+.chats-main {
+  flex-grow: 1; /* Allow this to grow */
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  margin-left: 290px ; /* Push content past the fixed sidebar */
+  /* Remove explicit width calculation */
+}
+
+/* Left Column: Connections List */
+.connections-list {
+  width: 300px; /* Fixed width for the contacts list */
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex-shrink: 0;
+  background: var(--card-bg); /* Slightly different background */
+}
+
+.connections-list h2 {
+  padding: 20px;
+  margin: 0;
+  font-size: 20px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.connections-scroll-area {
+    flex-grow: 1; /* Allow this area to scroll */
+    overflow-y: auto;
+}
+
+.connection-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.connection-item:hover {
+  background-color: var(--card-hover-bg);
+}
+
+.connection-item.active {
+  background-color: var(--primary);
+  color: var(--primary-text);
+}
+.connection-item.active .conn-skill {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.conn-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 15px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.conn-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.conn-user {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conn-skill {
+  font-size: 13px;
+  color: var(--muted-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-connections {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted-text);
+}
+
+/* Right Column: Chat Window Area */
+.chat-window-area {
+  flex-grow: 1; /* Takes remaining space */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-color); /* Main background */
+}
+
+.no-chat-selected {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--muted-text);
+    text-align: center;
+}
+
+.no-chat-selected p {
+    margin-top: 15px;
+    font-size: 18px;
+}

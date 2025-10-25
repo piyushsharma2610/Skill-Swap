@@ -11,6 +11,7 @@ import Onboarding from "./Pages/Onboarding";
 import Settings from "./Pages/Settings";
 import MySkills from "./Pages/MySkills";
 import Notifications from "./Pages/Notifications";
+import Chats from "./Pages/Chats";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -101,6 +102,8 @@ export default function App() {
         <Route path="/settings" element={<Settings darkMode={darkMode} setDarkMode={setDarkMode} notifications={notifications} />} />
         <Route path="/myskills" element={<MySkills darkMode={darkMode} setDarkMode={setDarkMode} notifications={notifications} />} />
         <Route path="/notifications" element={<Notifications darkMode={darkMode} setDarkMode={setDarkMode} notifications={notifications} setNotifications={setNotifications} socket={socketRef.current} />} />
+        <Route path="/chats" element={<Chats darkMode={darkMode} setDarkMode={setDarkMode} notifications={notifications} socketRef={socketRef} />} />
+        
       </Routes>
     </BrowserRouter>
   );
