@@ -1,5 +1,5 @@
 // The base URL of your FastAPI backend
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://skill-swap-production-7ffa.up.railway.app";
 
 // A helper function to handle API requests and errors
 async function apiRequest(endpoint, method = 'GET', body = null) {

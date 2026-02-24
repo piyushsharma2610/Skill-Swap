@@ -24,7 +24,7 @@ import skills
 # ---------- App Setup ----------
 app = FastAPI(title="SkillSwap API", version="0.1.0")
 app.include_router(skills.router)
-ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173", "http://127.0.0.1:5174"]
+ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173", "http://127.0.0.1:5174", "https://skill-swap.vercel.app"]
 app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.mount("/images", StaticFiles(directory="static/images"), name="images")
 

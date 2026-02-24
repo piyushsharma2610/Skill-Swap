@@ -42,7 +42,7 @@ export default function App() {
     if (token) {
       try {
           const clientId = jwtDecode(token).sub;
-          socket = new WebSocket(`ws://127.0.0.1:8000/ws/${clientId}`);
+          socket = new WebSocket(`wss://skill-swap-production-7ffa.up.railway.app/ws/${clientId}`);
           socketRef.current = socket; // Store the current socket instance
 
           socket.onopen = () => console.log(`WebSocket connection established for ${clientId}!`);
