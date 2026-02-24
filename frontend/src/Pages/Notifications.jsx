@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaHome, FaBook, FaUser, FaCog, FaSignOutAlt, FaTasks, FaBell, FaCommentDots } from "react-icons/fa";
 import { Sun, Moon } from "lucide-react";
-import { respondToRequest, getSentRequests } from '../../services/api';
+import { respondToRequest, getSentRequests, getIncomingRequests, getNotifications, markNotificationRead } from '../../services/api';
 import './Notifications.css';
 
 export default function Notifications({ darkMode, setDarkMode, notifications, setNotifications }) {
@@ -21,6 +21,70 @@ export default function Notifications({ darkMode, setDarkMode, notifications, se
     };
     fetchSent();
   }, []); // Empty array ensures this runs only once on mount
+
+  // Fetch incoming requests from backend on mount to cover missed websocket notifications
+  useEffect(() => {
+    const fetchIncoming = async () => {
+      try {
+        const incoming = await getIncomingRequests();
+        if (incoming && incoming.length > 0) {
+          // Convert DB request docs into notification objects used by websocket
+          const notifObjs = incoming.map(r => ({
+            type: 'new_request',
+            request_id: r._id,
+            from_user: r.from_user,
+            to_user: r.to_user,
+            skill_title: r.skill_title || r.skill_id,
+            skill_id: r.skill_id,
+            message: r.message || ''
+          }));
+          // Merge with existing notifications, avoiding duplicates by request_id
+          setNotifications(prev => {
+            const existingIds = new Set(prev.map(n => n.request_id));
+            const merged = [...prev];
+            notifObjs.forEach(n => { if (!existingIds.has(n.request_id)) merged.push(n); });
+            return merged;
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch incoming requests:', err);
+      }
+    };
+    fetchIncoming();
+  }, [setNotifications]);
+
+  // Fetch persisted notifications (history/unread) and merge into notifications state
+  useEffect(() => {
+    const fetchNotifs = async () => {
+      try {
+        const notifs = await getNotifications();
+        if (notifs && notifs.length > 0) {
+          // Convert DB notifications to client format and merge
+          const mapped = notifs.map(n => ({
+            type: n.type,
+            request_id: n.request_id || (n.request_id === undefined ? n.request_id : null),
+            notification_id: n._id,
+            from_user: n.from_user,
+            to_user: n.to_user,
+            skill_title: n.skill_title,
+            skill_id: n.skill_id,
+            message: n.message || '',
+            delivered: !!n.delivered,
+            read: !!n.read
+          }));
+          setNotifications(prev => {
+            const existingNotifIds = new Set(prev.map(p => p.notification_id || p.request_id));
+            const merged = [...prev];
+            mapped.forEach(m => { if (!existingNotifIds.has(m.notification_id || m.request_id)) merged.push(m); });
+            return merged;
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err);
+      }
+    };
+    fetchNotifs();
+  }, [setNotifications]);
 
   // Update sent requests list based on incoming response notifications
   useEffect(() => {
@@ -76,7 +140,7 @@ export default function Notifications({ darkMode, setDarkMode, notifications, se
     <div className="notifications-layout">
       {/* --- Full Sidebar --- */}
       <aside className="sidebar">
-         <h2 className="logo">SkillSwap 🚀</h2>
+         <h2 className="logo">SkillSwap </h2>
         <nav>
           <ul>
             <li><Link to="/dashboard"><FaHome /> Home</Link></li>
@@ -118,6 +182,9 @@ export default function Notifications({ darkMode, setDarkMode, notifications, se
                 const keyId = notif.request_id || Math.random(); // Fallback key
                 return (
                   <div key={keyId} className="notification-card">
+                      {/* Delivered/read status */}
+                      {notif.delivered === false && <div className="notif-status">(Pending delivery)</div>}
+                      {notif.read && <div className="notif-read">(Read)</div>}
                     <div className="notification-icon"><FaBell /></div>
                     <div className="notification-content">
                       <p><strong>{notif.from_user}</strong> wants to connect for skill: <strong>{notif.skill_title}</strong>.</p>
@@ -132,6 +199,16 @@ export default function Notifications({ darkMode, setDarkMode, notifications, se
                             {/* Ensure notif.request_id is passed */}
                             <button className="primary" onClick={() => handleResponse(notif.request_id, 'accepted')}>Accept</button>
                             <button className="secondary-btn" onClick={() => handleResponse(notif.request_id, 'declined')}>Decline</button>
+                            {/* Mark as read button (if persisted) */}
+                            {notif.notification_id && !notif.read && (
+                              <button className="mark-read" onClick={async () => {
+                                try {
+                                  await markNotificationRead(notif.notification_id);
+                                  // update local notifications state
+                                  setNotifications(prev => prev.map(n => (n.notification_id === notif.notification_id ? { ...n, read: true } : n)));
+                                } catch (e) { console.error('Mark read failed', e); }
+                              }}>Mark read</button>
+                            )}
                           </>
                         )}
                       </div>

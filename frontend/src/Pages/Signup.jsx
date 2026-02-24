@@ -24,10 +24,9 @@ export default function Signup() {
       const data = await res.json();
       
       if (res.ok) {
-        localStorage.setItem("token", data.access_token);
-        setMsg(data.message || "Signup successful ✅");
-        localStorage.setItem("username", username);
-        navigate("/dashboard"); // ✅ Redirect user after signup
+        // Do not auto-set a token after signup. Send user to login to obtain a valid token.
+        setMsg(data.message || "Signup successful ✅ Please log in.");
+        navigate("/login"); // Redirect user to login after signup
       } else {
         setMsg(data.detail || "Signup failed ❌");
       }

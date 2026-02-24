@@ -123,7 +123,7 @@ export default function Settings({ darkMode, setDarkMode }) {
     <div className="settings-layout">
       {/* ✅ --- CORRECTED SIDEBAR --- */}
       <aside className="sidebar">
-        <h2 className="logo">SkillSwap 🚀</h2>
+        <h2 className="logo">SkillSwap </h2>
         <nav>
           <ul>
             <li><Link to="/dashboard"><FaHome /> Home</Link></li>
@@ -158,7 +158,7 @@ export default function Settings({ darkMode, setDarkMode }) {
         
         {/* Account Management Card */}
         <div className="settings-card">
-          <h2>🔐 Account Management</h2>
+          <h2>Account Management</h2>
           <form onSubmit={handleChangePassword}>
             <p className="form-description">Change your password.</p>
             <div className="form-group">
@@ -180,7 +180,7 @@ export default function Settings({ darkMode, setDarkMode }) {
 
         {/* Privacy Settings Card */}
         <div className="settings-card">
-          <h2>👁️ Profile & Privacy</h2>
+          <h2>Profile & Privacy</h2>
           <form onSubmit={handleSavePrivacy}>
             <div className="form-group">
               <label>Profile Visibility</label>
@@ -205,7 +205,7 @@ export default function Settings({ darkMode, setDarkMode }) {
         
         {/* Notifications Card */}
         <div className="settings-card">
-          <h2>🔔 Notification Settings</h2>
+          <h2>Notification Settings</h2>
           <form onSubmit={handleSaveNotifications}>
             <p className="form-description">Choose how you receive notifications from SkillSwap.</p>
             <div className="form-group">

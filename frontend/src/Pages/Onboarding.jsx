@@ -208,7 +208,7 @@ export default function Notifications({ darkMode, setDarkMode, notifications, se
   return (
     <div className="onboarding-layout">
       <aside className="sidebar">
-        <h2 className="logo">SkillSwap 🚀</h2>
+        <h2 className="logo">SkillSwap </h2>
         <nav>
           <ul>
             <li><Link to="/dashboard"><FaHome /> Home</Link></li>

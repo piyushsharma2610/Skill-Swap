@@ -118,7 +118,7 @@ export default function Dashboard({ darkMode, setDarkMode, notifications, latest
   return (
     <div className="dashboard-container">
       <aside className="sidebar">
-        <h2 className="logo">SkillSwap 🚀</h2>
+        <h2 className="logo">SkillSwap </h2>
         <nav>
           <ul>
             <li><Link to="/dashboard"><FaHome /> Home</Link></li>
@@ -146,14 +146,14 @@ export default function Dashboard({ darkMode, setDarkMode, notifications, latest
 
       <main className="main-content">
         <header className="welcome-banner">
-          <h1>Welcome back, {summary?.username || username}! 🌟</h1>
+          <h1>Welcome back, {summary?.username || username}! </h1>
           <p>Ready to boost your skills today?</p>
         </header>
 
         {/* --- SUMMARY CARDS --- */}
         <section className="cards">
          <div className="card">
-            <h3>📚 Continue Learning</h3>
+            <h3> Continue Learning</h3>
             <p>
               {summary?.last_active_skill
                 ? `Pick up where you left off in "${summary.last_active_skill}".`
@@ -161,7 +161,7 @@ export default function Dashboard({ darkMode, setDarkMode, notifications, latest
             </p>
           </div>
           <div className="card">
-            <h3>🏆 Your Progress</h3>
+            <h3>Your Progress</h3>
             <p>
               {summary
                 ? `${summary.totals.completed} skills completed, ${summary.totals.in_progress} in progress.`
@@ -169,7 +169,7 @@ export default function Dashboard({ darkMode, setDarkMode, notifications, latest
             </p>
           </div>
           <div className="card">
-            <h3>💡 AI Suggestion</h3>
+            <h3>AI Suggestion</h3>
             <p>{summary?.ai_suggestion || "Loading suggestion..."}</p>
           </div>
         </section>

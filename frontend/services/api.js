@@ -71,6 +71,18 @@ export function getSentRequests() {
   return apiRequest('/requests/sent');
 }
 
+export function getIncomingRequests() {
+  return apiRequest('/requests/received');
+}
+
+export function getNotifications() {
+  return apiRequest('/notifications');
+}
+
+export function markNotificationRead(notifId) {
+  return apiRequest(`/notifications/${notifId}/read`, 'PUT');
+}
+
 // ✅ THIS FUNCTION WAS MISSING
 export function getChatHistory(requestId) {
   return apiRequest(`/chat/${requestId}`);

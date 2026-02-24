@@ -20,7 +20,7 @@ export default function Landing() {
           <p className="hero-quote">
             A community-driven platform where learning is fun and knowledge is shared.
           </p>
-          <Link to="/signup" className="get-started">🚀 Get Started</Link>
+          <Link to="/signup" className="get-started"> Get Started</Link>
         </section>
       </div>
 

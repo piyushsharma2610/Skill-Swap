@@ -13,12 +13,13 @@ from fastapi import (FastAPI, HTTPException, Depends, File, UploadFile,
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
-from motor.motor_asyncio import AsyncIOMotorClient
+# from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr, Field
 
 from auth import verify_token
 import skills
+
 
 # ---------- App Setup ----------
 app = FastAPI(title="SkillSwap API", version="0.1.0")
@@ -34,19 +35,39 @@ class ConnectionManager:
     def disconnect(self, client_id: str):
         if client_id in self.active_connections: del self.active_connections[client_id]; print(f"--- WS DISCONNECTED: {client_id} ---")
     async def broadcast(self, data: dict): message = json.dumps(data, default=str); [await conn.send_text(message) for conn in self.active_connections.values()]
-    async def send_personal_message(self, data: dict, client_id: str):
+    async def send_personal_message(self, data: dict, client_id: str) -> bool:
+        """Send a personal websocket message. Returns True if sent, False otherwise."""
         message = json.dumps(data, default=str) # Use default=str to handle ObjectId/datetime
-        if client_id in self.active_connections: await self.active_connections[client_id].send_text(message); print(f"--- WS SENT to {client_id} ---")
-        else: print(f"--- WS SEND FAILED: {client_id} not connected ---")
+        if client_id in self.active_connections:
+            try:
+                await self.active_connections[client_id].send_text(message)
+                print(f"--- WS SENT to {client_id} ---")
+                return True
+            except Exception as e:
+                print(f"--- WS SEND ERROR to {client_id}: {e} ---")
+                return False
+        else:
+            print(f"--- WS SEND FAILED: {client_id} not connected ---")
+            return False
 manager = ConnectionManager()
 
 # ---------- DB & Auth Setup ----------
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-client = AsyncIOMotorClient(MONGO_URL)
-db = client["skillswap"]
-users_collection = db["users"]; skills_collection = db["skills"]; requests_collection = db["requests"]; messages_collection = db["messages"]
+
+
+
+from database import  db, users_collection, skills_collection, requests_collection, notifications_collection
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# NEW: Ensure we use the cloud messages collection
+messages_collection = db["messages"]
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = os.getenv("SECRET_KEY", "change_this_to_a_long_random_secret")
+
+# IMPORTANT: Ensure this matches what you used to create the token
+# If you put SECRET_KEY in .env, use os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 
 # ---------- Schemas ----------
@@ -73,6 +94,24 @@ class ChatConnection(BaseModel):
 @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
     await manager.connect(websocket, client_id)
+    # On connect, push any undelivered notifications for this user
+    try:
+        cursor = notifications_collection.find({"to_user": client_id, "delivered": False})
+        async for notif in cursor:
+            # build message payload similar to live notifications
+            payload = {
+                "type": notif.get("type"),
+                "request_id": str(notif.get("request_id")) if notif.get("request_id") else None,
+                "from_user": notif.get("from_user"),
+                "skill_title": notif.get("skill_title"),
+                "skill_id": str(notif.get("skill_id")) if notif.get("skill_id") else None,
+                "message": notif.get("message", "")
+            }
+            sent_ok = await manager.send_personal_message(payload, client_id)
+            if sent_ok:
+                await notifications_collection.update_one({"_id": notif["_id"]}, {"$set": {"delivered": True}})
+    except Exception as e:
+        print(f"Error sending pending notifications to {client_id}: {e}")
     try:
         while True:
             text_data = await websocket.receive_text()
@@ -109,7 +148,20 @@ async def request_exchange(payload: ExchangeRequest, username: str = Depends(ver
     doc = { "skill_id": _id, "from_user": username, "to_user": skill["owner"], "message": payload.message, "status": "pending", "created_at": datetime.utcnow() }
     result = await requests_collection.insert_one(doc) # Get the result of the insert operation
 
-    # --- Ensure the request_id is included here ---
+    # Persist a notification record so recipient can fetch it if websocket delivery fails
+    notif_doc = {
+        "type": "new_request",
+        "request_id": result.inserted_id,
+        "from_user": username,
+        "to_user": skill["owner"],
+        "skill_title": skill["title"],
+        "skill_id": skill["_id"],
+        "message": payload.message,
+        "created_at": datetime.utcnow(),
+        "delivered": False
+    }
+    notif_res = await notifications_collection.insert_one(notif_doc)
+
     notification_data = {
         "type": "new_request",
         "request_id": str(result.inserted_id), # Use the ID from the insert result
@@ -118,11 +170,12 @@ async def request_exchange(payload: ExchangeRequest, username: str = Depends(ver
         "skill_id": str(skill["_id"]),
         "message": payload.message
     }
-    # --- End correction ---
 
     skill_owner_username = skill["owner"];
     print(f"--- Attempting send NEW_REQUEST to {skill_owner_username} ---") # Debug print
-    await manager.send_personal_message(notification_data, skill_owner_username)
+    sent = await manager.send_personal_message(notification_data, skill_owner_username)
+    if sent:
+        await notifications_collection.update_one({"_id": notif_res.inserted_id}, {"$set": {"delivered": True}})
     return {"message": "Request sent"}
 
 
@@ -147,7 +200,21 @@ async def respond_to_request(request_id: str, response: RequestResponse, usernam
         "from_user": username # Let requester know who responded
     }
     print(f"--- Attempting send RESPONSE to {original_requester} ---") # Debug print
-    await manager.send_personal_message(response_notification, original_requester)
+    # Persist a notification record for the response
+    resp_notif = {
+        "type": "request_response",
+        "request_id": object_id,
+        "from_user": username,
+        "to_user": original_requester,
+        "skill_title": skill_title,
+        "status": new_status,
+        "created_at": datetime.utcnow(),
+        "delivered": False
+    }
+    resp_notif_res = await notifications_collection.insert_one(resp_notif)
+    sent = await manager.send_personal_message(response_notification, original_requester)
+    if sent:
+        await notifications_collection.update_one({"_id": resp_notif_res.inserted_id}, {"$set": {"delivered": True}})
     return {"message": f"Request {new_status}"}
 
 
@@ -168,6 +235,48 @@ async def get_sent_requests(username: str = Depends(verify_token)):
         
         requests.append(req)
     return requests
+
+
+@app.get("/requests/received")
+async def get_received_requests(username: str = Depends(verify_token)):
+    cursor = requests_collection.find({"to_user": username}).sort("created_at", -1)
+    incoming = []
+    async for req in cursor:
+        # attach skill title if available
+        skill = await skills_collection.find_one({"_id": req["skill_id"]})
+        req["skill_title"] = skill["title"] if skill else "a deleted skill"
+        req["_id"] = str(req["_id"])
+        req["skill_id"] = str(req["skill_id"])
+        incoming.append(req)
+    return incoming
+
+
+@app.get("/notifications")
+async def get_notifications(username: str = Depends(verify_token)):
+    cursor = notifications_collection.find({"to_user": username}).sort("created_at", -1)
+    notifs = []
+    async for n in cursor:
+        n["_id"] = str(n["_id"])
+        # normalize request_id
+        if isinstance(n.get("request_id"), ObjectId):
+            n["request_id"] = str(n["request_id"]) 
+        notifs.append(n)
+    return notifs
+
+
+@app.put("/notifications/{notif_id}/read")
+async def mark_notification_read(notif_id: str, username: str = Depends(verify_token)):
+    try:
+        oid = ObjectId(notif_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid notification id")
+    notif = await notifications_collection.find_one({"_id": oid})
+    if not notif:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    if notif.get("to_user") != username:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    await notifications_collection.update_one({"_id": oid}, {"$set": {"read": True}})
+    return {"message": "marked"}
 # ... (All other routes remain the same) ...
 # Remaining routes below are unchanged and correct
 @app.post("/signup")
@@ -178,7 +287,7 @@ async def signup(user: UserSignup):
     return {"message": "User created successfully"}
 @app.post("/login")
 async def login(body: UserLogin):
-    user = await users_collection.find_one({"username": body.username});
+    user = await users_collection.find_one({"username": body.username})
     if not user or not pwd_context.verify(body.password, user["password"]): raise HTTPException(status_code=400, detail="Invalid username or password")
     token = create_access_token(subject=user["username"])
     return {"message": "Login successful", "access_token": token, "token_type": "bearer"}
